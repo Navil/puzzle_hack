@@ -1,5 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
+import 'package:puzzle_hack/model/sand_movement.dart';
+import 'package:puzzle_hack/model/sand_position.dart';
 import '../model/position.dart';
 import '../model/puzzle.dart';
 import '../model/tile.dart';
@@ -7,9 +11,10 @@ import '../model/tile.dart';
 class PuzzleService extends ChangeNotifier {
   static const int size = 4;
   late Puzzle currentPuzzle;
-  List<Position> astralData = [];
+  List<SandMovement> sandData = [];
+  final GlobalKey boardKey = GlobalKey();
 
-  static int astralSize = 10;
+  static int sandSize = 2;
   int numMoves = 0;
 
   PuzzleService() {
@@ -107,16 +112,35 @@ class PuzzleService extends ChangeNotifier {
   }
 
   tileClicked(Tile tile) {
-    int? width = tile.tileKey.currentContext?.size?.width.ceil().toInt();
-    int? height = tile.tileKey.currentContext?.size?.height.ceil().toInt();
+    //Height === Width
+    double? tileSize = tile.tileKey.currentContext?.size?.width;
+    double? boardSize = boardKey.currentContext?.size?.width;
 
-    if (width != null && height != null) {
-      for (int x = -1; x <= width; x = x + astralSize) {
-        for (int y = -1; y <= height; y = y + astralSize) {
-          astralData.add(Position(x: x, y: y));
+    if (tileSize != null && boardSize != null) {
+      final whiteSpaceTile = getWhitespaceTile();
+      final xIndex = tile.currentPosition.x - 1;
+      final yIndex = tile.currentPosition.y - 1;
+      final spacing = (boardSize - (tileSize * 4)) / 4;
+      final baseX = (xIndex * tileSize) + (spacing * xIndex);
+      final baseY = (yIndex * tileSize) + (spacing * yIndex);
+
+      double destinationX = baseX;
+      destinationX += (spacing + tileSize) *
+          (whiteSpaceTile.currentPosition.x - tile.currentPosition.x).sign;
+
+      double destinationY = baseY;
+      destinationY += (spacing + tileSize) *
+          (whiteSpaceTile.currentPosition.y - tile.currentPosition.y).sign;
+
+      for (int x = 0; x < tileSize; x = x + sandSize) {
+        for (int y = 0; y < tileSize; y = y + sandSize) {
+          sandData.add(SandMovement(
+              from: SandPosition(x: baseX + x, y: baseY + y),
+              to: SandPosition(x: destinationX + x, y: destinationY + y),
+              speed: Random().nextDouble() + 1));
         }
       }
-      astralData.shuffle();
+      sandData.shuffle();
       tile.moving = true;
       getWhitespaceTile().value = tile.value;
       notifyListeners();
@@ -128,7 +152,7 @@ class PuzzleService extends ChangeNotifier {
     if (tile == null) {
       return;
     }
-    astralData.clear();
+    sandData.clear();
     tile.moving = false;
     getWhitespaceTile().value = size * size;
     final mutablePuzzle = Puzzle(tiles: [...currentPuzzle.tiles]);

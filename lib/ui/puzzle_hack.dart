@@ -22,8 +22,8 @@ class _PuzzleHackState extends State<PuzzleHack> {
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
+            Container(
+              margin: const EdgeInsets.all(8.0),
               child: Row(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -81,8 +81,10 @@ class _PuzzleHackState extends State<PuzzleHack> {
         Icons.restart_alt,
         color: Theme.of(context).primaryColor,
       ),
-      onPressed: () =>
-          Provider.of<PuzzleService>(context, listen: false).generatePuzzle(),
+      onPressed: Provider.of<PuzzleService>(context).getMovingTile() != null
+          ? null
+          : () => Provider.of<PuzzleService>(context, listen: false)
+              .generatePuzzle(),
     );
   }
 
