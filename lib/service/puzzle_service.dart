@@ -14,7 +14,7 @@ class PuzzleService extends ChangeNotifier {
   List<SandMovement> sandData = [];
   final GlobalKey boardKey = GlobalKey();
 
-  static int sandSize = 2;
+  static int sandSize = 3;
   int numMoves = 0;
 
   PuzzleService() {
